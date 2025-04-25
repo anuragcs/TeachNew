@@ -22,16 +22,19 @@ exports.createCourse = async (req, res) => {
       category,
       status,
       instructions: _instructions,
+      test: _test,
     } = req.body
     // Get thumbnail image from request files
     const thumbnail = req.files.thumbnailImage
 
-    // Convert the tag and instructions from stringified Array to Array
+    // Convert the tag, instructions, and test from stringified Array to Array
     const tag = JSON.parse(_tag)
     const instructions = JSON.parse(_instructions)
+    const test = JSON.parse(_test)
 
     console.log("tag", tag)
     console.log("instructions", instructions)
+    console.log("test", test)
 
     // Check if any of the required fields are missing
     if (
@@ -42,11 +45,13 @@ exports.createCourse = async (req, res) => {
       !tag.length ||
       !thumbnail ||
       !category ||
-      !instructions.length
+      !instructions.length ||
+      !test.length ||
+      test.length !== 10
     ) {
       return res.status(400).json({
         success: false,
-        message: "All Fields are Mandatory",
+        message: "All Fields are Mandatory and test must have 10 questions",
       })
     }
     if (!status || status === undefined) {
@@ -90,6 +95,7 @@ exports.createCourse = async (req, res) => {
       thumbnail: thumbnailImage.secure_url,
       status: status,
       instructions,
+      test,
     })
 
     // Add the new course to the User Schema of the Instructor
@@ -131,7 +137,6 @@ exports.createCourse = async (req, res) => {
     })
   }
 }
-// Edit Course Details
 exports.editCourse = async (req, res) => {
   try {
     const { courseId } = req.body
@@ -156,7 +161,7 @@ exports.editCourse = async (req, res) => {
     // Update only the fields that are present in the request body
     for (const key in updates) {
       if (updates.hasOwnProperty(key)) {
-        if (key === "tag" || key === "instructions") {
+        if (key === "tag" || key === "instructions" || key === "test") {
           course[key] = JSON.parse(updates[key])
         } else {
           course[key] = updates[key]
@@ -333,6 +338,7 @@ exports.getCourseDetails = async (req, res) => {
       data: {
         courseDetails,
         totalDuration,
+        test: courseDetails.test || [],
       },
     })
   } catch (error) {

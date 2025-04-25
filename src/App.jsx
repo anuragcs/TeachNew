@@ -17,6 +17,7 @@ import Instructor from "./components/core/Dashboard/Instructor"
 import MyCourses from "./components/core/Dashboard/MyCourses"
 import MyProfile from "./components/core/Dashboard/MyProfile"
 import Settings from "./components/core/Dashboard/Settings"
+import TakeTest from "./components/core/Dashboard/TakeTest"
 import VideoDetails from "./components/core/ViewCourse/VideoDetails"
 import About from "./pages/About"
 import Catalog from "./pages/Catalog"
@@ -129,6 +130,7 @@ function App() {
                 element={<EnrolledCourses />}
               />
               <Route path="/dashboard/cart" element={<Cart />} />
+              <Route path="dashboard/take-test/:courseId" element={<TakeTest />} />
             </>
           )}
           <Route path="dashboard/settings" element={<Settings />} />

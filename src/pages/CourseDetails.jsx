@@ -201,41 +201,53 @@ function CourseDetails() {
           </div>
 
           {/* Course Content Section */}
-          <div className="max-w-[830px] ">
-            <div className="flex flex-col gap-3">
-              <p className="text-[28px] font-semibold">Course Content</p>
-              <div className="flex flex-wrap justify-between gap-2">
-                <div className="flex gap-2">
-                  <span>
-                    {courseContent.length} {`section(s)`}
-                  </span>
-                  <span>
-                    {totalNoOfLectures} {`lecture(s)`}
-                  </span>
-                  <span>{response.data?.totalDuration} total length</span>
-                </div>
-                <div>
-                  <button
-                    className="text-yellow-25"
-                    onClick={() => setIsActive([])}
-                  >
-                    Collapse all sections
-                  </button>
-                </div>
-              </div>
+      <div className="max-w-[830px] ">
+        <div className="flex flex-col gap-3">
+          <p className="text-[28px] font-semibold">Course Content</p>
+          <div className="flex flex-wrap justify-between gap-2">
+            <div className="flex gap-2">
+              <span>
+                {courseContent.length} {`section(s)`}
+              </span>
+              <span>
+                {totalNoOfLectures} {`lecture(s)`}
+              </span>
+              <span>{response.data?.totalDuration} total length</span>
             </div>
+            <div>
+              <button
+                className="text-yellow-25"
+                onClick={() => setIsActive([])}
+              >
+                Collapse all sections
+              </button>
+            </div>
+          </div>
+        </div>
 
-            {/* Course Details Accordion */}
-            <div className="py-4">
-              {courseContent?.map((course, index) => (
-                <CourseAccordionBar
-                  course={course}
-                  key={index}
-                  isActive={isActive}
-                  handleActive={handleActive}
-                />
-              ))}
-            </div>
+        {/* Course Details Accordion */}
+        <div className="py-4">
+          {courseContent?.map((course, index) => (
+            <CourseAccordionBar
+              course={course}
+              key={index}
+              isActive={isActive}
+              handleActive={handleActive}
+            />
+          ))}
+        </div>
+
+        {/* Take Test Button for Students */}
+        {user?.accountType === "Student" && response.data?.test?.length === 10 && (
+          <div className="mt-6">
+            <button
+              onClick={() => navigate(`/dashboard/take-test/${course_id}`)}
+              className="rounded bg-yellow-50 px-4 py-2 font-semibold text-richblack-900 hover:bg-yellow-100"
+            >
+              Take Test
+            </button>
+          </div>
+        )}
 
             {/* Author Details */}
             <div className="mb-12 py-4">

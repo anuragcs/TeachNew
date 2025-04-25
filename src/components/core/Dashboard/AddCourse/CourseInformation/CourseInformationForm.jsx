@@ -32,19 +32,22 @@ export default function CourseInformationForm() {
   const [loading, setLoading] = useState(false)
   const [courseCategories, setCourseCategories] = useState([])
 
+  // State for test questions and answers
+  const [testQuestions, setTestQuestions] = useState(
+    Array(10).fill({ question: "", answer: "" })
+  )
+
   useEffect(() => {
     const getCategories = async () => {
       setLoading(true)
       const categories = await fetchCourseCategories()
       if (categories.length > 0) {
-        // console.log("categories", categories)
         setCourseCategories(categories)
       }
       setLoading(false)
     }
     // if form is in edit mode
     if (editCourse) {
-      // console.log("data populated", editCourse)
       setValue("courseTitle", course.courseName)
       setValue("courseShortDesc", course.courseDescription)
       setValue("coursePrice", course.price)
@@ -53,15 +56,16 @@ export default function CourseInformationForm() {
       setValue("courseCategory", course.category)
       setValue("courseRequirements", course.instructions)
       setValue("courseImage", course.thumbnail)
+      if (course.test && course.test.length === 10) {
+        setTestQuestions(course.test)
+      }
     }
     getCategories()
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const isFormUpdated = () => {
     const currentValues = getValues()
-    // console.log("changes after editing form values:", currentValues)
     if (
       currentValues.courseTitle !== course.courseName ||
       currentValues.courseShortDesc !== course.courseDescription ||
@@ -71,26 +75,35 @@ export default function CourseInformationForm() {
       currentValues.courseCategory._id !== course.category._id ||
       currentValues.courseRequirements.toString() !==
         course.instructions.toString() ||
-      currentValues.courseImage !== course.thumbnail
+      JSON.stringify(testQuestions) !== JSON.stringify(course.test)
     ) {
       return true
     }
     return false
   }
 
-  //   handle next button click
+  const handleTestQuestionChange = (index, field, value) => {
+    const newTestQuestions = [...testQuestions]
+    newTestQuestions[index] = { ...newTestQuestions[index], [field]: value }
+    setTestQuestions(newTestQuestions)
+  }
+//   handle next button click
   const onSubmit = async (data) => {
-    // console.log(data)
+    // Validate test questions
+    for (let i = 0; i < testQuestions.length; i++) {
+      if (
+        !testQuestions[i].question.trim() ||
+        !testQuestions[i].answer.trim()
+      ) {
+        toast.error(`Please fill question and answer for item ${i + 1}`)
+        return
+      }
+    }
 
     if (editCourse) {
-      // const currentValues = getValues()
-      // console.log("changes after editing form values:", currentValues)
-      // console.log("now course:", course)
-      // console.log("Has Form Changed:", isFormUpdated())
       if (isFormUpdated()) {
         const currentValues = getValues()
         const formData = new FormData()
-        // console.log(data)
         formData.append("courseId", course._id)
         if (currentValues.courseTitle !== course.courseName) {
           formData.append("courseName", data.courseTitle)
@@ -119,10 +132,12 @@ export default function CourseInformationForm() {
             JSON.stringify(data.courseRequirements)
           )
         }
+        if (JSON.stringify(testQuestions) !== JSON.stringify(course.test)) {
+          formData.append("test", JSON.stringify(testQuestions))
+        }
         if (currentValues.courseImage !== course.thumbnail) {
           formData.append("thumbnailImage", data.courseImage)
         }
-        // console.log("Edit Form data: ", formData)
         setLoading(true)
         const result = await editCourseDetails(formData, token)
         setLoading(false)
@@ -146,6 +161,7 @@ export default function CourseInformationForm() {
     formData.append("status", COURSE_STATUS.DRAFT)
     formData.append("instructions", JSON.stringify(data.courseRequirements))
     formData.append("thumbnailImage", data.courseImage)
+    formData.append("test", JSON.stringify(testQuestions))
     setLoading(true)
     const result = await addCourseDetails(formData, token)
     if (result) {
@@ -292,6 +308,36 @@ export default function CourseInformationForm() {
         errors={errors}
         getValues={getValues}
       />
+{/* Test Questions */}
+      <div className="space-y-4 rounded-md border border-richblack-600 p-4">
+        <h3 className="mb-4 text-lg font-semibold text-richblack-5">
+          Test Questions (10)
+        </h3>
+        {testQuestions.map((item, index) => (
+          <div key={index} className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <input
+              type="text"
+              placeholder={`Question ${index + 1}`}
+              value={item.question}
+              onChange={(e) =>
+                handleTestQuestionChange(index, "question", e.target.value)
+              }
+              className="form-style w-full"
+              required
+            />
+            <input
+              type="text"
+              placeholder={`Answer ${index + 1}`}
+              value={item.answer}
+              onChange={(e) =>
+                handleTestQuestionChange(index, "answer", e.target.value)
+              }
+              className="form-style w-full"
+              required
+            />
+          </div>
+        ))}
+      </div>
       {/* Next Button */}
       <div className="flex justify-end gap-x-2">
         {editCourse && (
@@ -300,7 +346,7 @@ export default function CourseInformationForm() {
             disabled={loading}
             className={`flex cursor-pointer items-center gap-x-2 rounded-md bg-richblack-300 py-[8px] px-[20px] font-semibold text-richblack-900`}
           >
-            Continue Wihout Saving
+            Continue Without Saving
           </button>
         )}
         <IconBtn

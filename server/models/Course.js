@@ -30,6 +30,12 @@ const coursesSchema = new mongoose.Schema({
   thumbnail: {
     type: String,
   },
+  test: [
+    {
+    question: { type: String, required: true },
+    answer: { type: String, required: true },
+    },
+    ],
   tag: {
     type: [String],
     required: true,

@@ -76,7 +76,9 @@ router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
-router.post("/getCourseDetails", getCourseDetails)
+const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/auth")
+
+router.post("/getCourseDetails", auth, getCourseDetails)
 // Get Details for a Specific Courses
 router.post("/getFullCourseDetails", auth, getFullCourseDetails)
 // To Update Course Progress
