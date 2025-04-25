@@ -47,6 +47,8 @@ app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/reach", contactUsRoute);
+const testRoutes = require("./routes/test");
+app.use("/api/v1/test", testRoutes);
 
 // Testing the server
 app.get("/", (req, res) => {

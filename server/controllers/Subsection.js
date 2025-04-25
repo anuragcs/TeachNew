@@ -7,30 +7,56 @@ const { uploadImageToCloudinary } = require("../utils/imageUploader")
 exports.createSubSection = async (req, res) => {
   try {
     // Extract necessary information from the request body
-    const { sectionId, title, description } = req.body
-    const video = req.files.video
+    const { sectionId, title, description, type, testQuestions } = req.body
+    const video = req.files ? req.files.video : null
 
-    // Check if all necessary fields are provided
-    if (!sectionId || !title || !description || !video) {
+    if (!sectionId || !title || !description) {
       return res
         .status(404)
-        .json({ success: false, message: "All Fields are Required" })
+        .json({ success: false, message: "Required fields are missing" })
     }
-    console.log(video)
 
-    // Upload the video file to Cloudinary
-    const uploadDetails = await uploadImageToCloudinary(
-      video,
-      process.env.FOLDER_NAME
-    )
-    console.log(uploadDetails)
-    // Create a new sub-section with the necessary information
-    const SubSectionDetails = await SubSection.create({
-      title: title,
-      timeDuration: `${uploadDetails.duration}`,
-      description: description,
-      videoUrl: uploadDetails.secure_url,
-    })
+    let SubSectionDetails
+
+    if (type === "Test") {
+      // Parse testQuestions JSON string if needed
+      let questions = []
+      if (testQuestions) {
+        try {
+          questions = JSON.parse(testQuestions)
+        } catch (err) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid testQuestions format",
+          })
+        }
+      }
+
+      SubSectionDetails = await SubSection.create({
+        title: title,
+        description: description,
+        type: "Test",
+        testQuestions: questions,
+      })
+    } else {
+      if (!video) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Video is required for lecture" })
+      }
+      // Upload the video file to Cloudinary
+      const uploadDetails = await uploadImageToCloudinary(
+        video,
+        process.env.FOLDER_NAME
+      )
+      SubSectionDetails = await SubSection.create({
+        title: title,
+        timeDuration: `${uploadDetails.duration}`,
+        description: description,
+        videoUrl: uploadDetails.secure_url,
+        type: "Lecture",
+      })
+    }
 
     // Update the corresponding section with the newly created sub-section
     const updatedSection = await Section.findByIdAndUpdate(
@@ -54,7 +80,7 @@ exports.createSubSection = async (req, res) => {
 
 exports.updateSubSection = async (req, res) => {
   try {
-    const { sectionId, subSectionId, title, description } = req.body
+    const { sectionId, subSectionId, title, description, type, testQuestions } = req.body
     const subSection = await SubSection.findById(subSectionId)
 
     if (!subSection) {
@@ -71,6 +97,22 @@ exports.updateSubSection = async (req, res) => {
     if (description !== undefined) {
       subSection.description = description
     }
+
+    if (type !== undefined) {
+      subSection.type = type
+    }
+
+    if (type === "Test" && testQuestions !== undefined) {
+      try {
+        subSection.testQuestions = JSON.parse(testQuestions)
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid testQuestions format",
+        })
+      }
+    }
+
     if (req.files && req.files.video !== undefined) {
       const video = req.files.video
       const uploadDetails = await uploadImageToCloudinary(

@@ -16,6 +16,7 @@ import {
 } from "../../../../../slices/courseSlice"
 import IconBtn from "../../../../Common/IconBtn"
 import NestedView from "./NestedView"
+import SubSectionModal from "./SubSectionModal"
 
 export default function CourseBuilderForm() {
   const {
@@ -29,11 +30,14 @@ export default function CourseBuilderForm() {
   const { token } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(false)
   const [editSectionName, setEditSectionName] = useState(null)
+  const [modalData, setModalData] = useState(null)
+  const [modalAdd, setModalAdd] = useState(false)
+  const [modalEdit, setModalEdit] = useState(false)
+  const [modalView, setModalView] = useState(false)
   const dispatch = useDispatch()
 
   // handle form submission
   const onSubmit = async (data) => {
-    // console.log(data)
     setLoading(true)
 
     let result
@@ -47,7 +51,6 @@ export default function CourseBuilderForm() {
         },
         token
       )
-      // console.log("edit", result)
     } else {
       result = await createSection(
         {
@@ -58,7 +61,6 @@ export default function CourseBuilderForm() {
       )
     }
     if (result) {
-      // console.log("section result", result)
       dispatch(setCourse(result))
       setEditSectionName(null)
       setValue("sectionName", "")
@@ -97,6 +99,18 @@ export default function CourseBuilderForm() {
   const goBack = () => {
     dispatch(setStep(1))
     dispatch(setEditCourse(true))
+  }
+
+  const openAddTestModal = () => {
+    setModalData({
+      subsectionType: "Test",
+      testQuestions: Array(10).fill({ question: "", answer: "" }),
+      title: "",
+      description: "",
+      videoUrl: "",
+      sectionId: course.courseContent.length > 0 ? course.courseContent[0]._id : null,
+    })
+    setModalAdd(true)
   }
 
   return (
@@ -140,6 +154,14 @@ export default function CourseBuilderForm() {
           )}
         </div>
       </form>
+      <div className="flex justify-end">
+        <button
+          onClick={openAddTestModal}
+          className="rounded-md bg-yellow-50 py-2 px-4 font-semibold text-richblack-900 hover:bg-yellow-100"
+        >
+          Add Test
+        </button>
+      </div>
       {course.courseContent.length > 0 && (
         <NestedView handleChangeEditSectionName={handleChangeEditSectionName} />
       )}
@@ -155,6 +177,22 @@ export default function CourseBuilderForm() {
           <MdNavigateNext />
         </IconBtn>
       </div>
+      {(modalAdd || modalEdit || modalView) && (
+        <SubSectionModal
+          modalData={modalData}
+          setModalData={(data) => {
+            setModalData(data)
+            if (data === null) {
+              setModalAdd(false)
+              setModalEdit(false)
+              setModalView(false)
+            }
+          }}
+          add={modalAdd}
+          edit={modalEdit}
+          view={modalView}
+        />
+      )}
     </div>
   )
 }

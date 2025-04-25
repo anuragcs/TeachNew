@@ -70,3 +70,8 @@ export const settingsEndpoints = {
   CHANGE_PASSWORD_API: BASE_URL + "/auth/changepassword",
   DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
 }
+
+export const testEndpoints = {
+  getTestQuestions: BASE_URL + "/test/questions",
+  submitTestAnswers: BASE_URL + "/test/submit",
+}

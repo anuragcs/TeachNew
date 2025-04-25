@@ -107,7 +107,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
                   <div className="flex items-center gap-x-3 py-2 ">
                     <RxDropdownMenu className="text-2xl text-richblack-50" />
                     <p className="font-semibold text-richblack-50">
-                      {data.title}
+                      {data.title} {data.type === "Test" && "(Test)"}
                     </p>
                   </div>
                   <div
@@ -124,7 +124,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
                     <button
                       onClick={() =>
                         setConfirmationModal({
-                          text1: "Delete this Sub-Section?",
+                          text1: `Delete this Sub-Section${data.type === "Test" ? " (Test)" : ""}?`,
                           text2: "This lecture will be deleted",
                           btn1Text: "Delete",
                           btn2Text: "Cancel",
