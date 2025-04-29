@@ -304,6 +304,8 @@ exports.getCourseDetails = async (req, res) => {
       })
       .exec()
 
+    console.log("Populated instructor in getCourseDetails:", courseDetails.instructor)
+
     if (!courseDetails) {
       return res.status(400).json({
         success: false,
