@@ -53,6 +53,13 @@ const coursesSchema = new mongoose.Schema({
     type: String,
     enum: ["Draft", "Published"],
   },
+  test: [
+    {
+      questionText: { type: String, required: true },
+      options: [{ type: String, required: true }],
+      correctAnswer: { type: String, required: true },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
 })
 

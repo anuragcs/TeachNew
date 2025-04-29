@@ -96,8 +96,8 @@ export default function Instructor() {
                 <p className="text-xs font-semibold text-yellow-50">View All</p>
               </Link>
             </div>
-            <div className="my-4 flex items-start space-x-6">
-              {courses.slice(0, 3).map((course) => (
+            <div className="my-4 flex flex-wrap gap-6">
+              {courses.map((course) => (
                 <div key={course._id} className="w-1/3">
                   <img
                     src={course.thumbnail}
@@ -119,6 +119,12 @@ export default function Instructor() {
                         Rs. {course.price}
                       </p>
                     </div>
+                    <button
+                      onClick={() => window.location.assign(`/dashboard/add-test/${course._id}`)}
+                      className="mt-2 bg-yellow-600 hover:bg-yellow-700 text-richblack-900 font-semibold py-1 px-3 rounded-md"
+                    >
+                      Add Test
+                    </button>
                   </div>
                 </div>
               ))}

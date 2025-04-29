@@ -1,4 +1,6 @@
-const BASE_URL = process.env.REACT_APP_BASE_URL
+const BASE_URL = process.env.REACT_APP_BASE_URL?.endsWith("/")
+  ? process.env.REACT_APP_BASE_URL + "api/v1"
+  : process.env.REACT_APP_BASE_URL + "/api/v1"
 
 // AUTH ENDPOINTS
 export const endpoints = {
@@ -42,6 +44,7 @@ export const courseEndpoints = {
     BASE_URL + "/course/getFullCourseDetails",
   LECTURE_COMPLETION_API: BASE_URL + "/course/updateCourseProgress",
   CREATE_RATING_API: BASE_URL + "/course/createRating",
+  SAVE_TEST_API: BASE_URL + "/course/saveTest",
 }
 
 // RATINGS AND REVIEWS

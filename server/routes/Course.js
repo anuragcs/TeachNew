@@ -102,4 +102,17 @@ router.post("/createRating", auth, isStudent, createRating)
 router.get("/getAverageRating", getAverageRating)
 router.get("/getReviews", getAllRatingReview)
 
+const { submitTest, getTest, saveTest } = require("../controllers/Course")
+
+// Existing routes...
+
+// Route to get test for a course
+router.get("/getTest/:courseId", auth, getTest)
+
+// Route for student to submit test answers and get score
+router.post("/submitTest/:courseId", auth, isStudent, submitTest)
+
+// Route to save test for a course (instructor only)
+router.post("/saveTest/:courseId", auth, isInstructor, saveTest)
+
 module.exports = router

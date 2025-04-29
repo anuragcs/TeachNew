@@ -22,16 +22,19 @@ exports.createCourse = async (req, res) => {
       category,
       status,
       instructions: _instructions,
+      test: _test,
     } = req.body
     // Get thumbnail image from request files
     const thumbnail = req.files.thumbnailImage
 
-    // Convert the tag and instructions from stringified Array to Array
+    // Convert the tag, instructions, and test from stringified Array to Array
     const tag = JSON.parse(_tag)
     const instructions = JSON.parse(_instructions)
+    const test = _test ? JSON.parse(_test) : []
 
     console.log("tag", tag)
     console.log("instructions", instructions)
+    console.log("test", test)
 
     // Check if any of the required fields are missing
     if (
@@ -90,6 +93,7 @@ exports.createCourse = async (req, res) => {
       thumbnail: thumbnailImage.secure_url,
       status: status,
       instructions,
+      test,
     })
 
     // Add the new course to the User Schema of the Instructor
@@ -134,6 +138,7 @@ exports.createCourse = async (req, res) => {
 // Edit Course Details
 exports.editCourse = async (req, res) => {
   try {
+    console.log("Edit course request body:", req.body)
     const { courseId } = req.body
     const updates = req.body
     const course = await Course.findById(courseId)
@@ -156,7 +161,7 @@ exports.editCourse = async (req, res) => {
     // Update only the fields that are present in the request body
     for (const key in updates) {
       if (updates.hasOwnProperty(key)) {
-        if (key === "tag" || key === "instructions") {
+        if (key === "tag" || key === "instructions" || key === "test") {
           course[key] = JSON.parse(updates[key])
         } else {
           course[key] = updates[key]
@@ -191,7 +196,7 @@ exports.editCourse = async (req, res) => {
       data: updatedCourse,
     })
   } catch (error) {
-    console.error(error)
+    console.error("Error in editCourse:", error)
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -480,6 +485,101 @@ exports.deleteCourse = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Course deleted successfully",
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    })
+  }
+}
+
+// Get test questions for a course
+exports.getTest = async (req, res) => {
+  try {
+    const { courseId } = req.params
+    const course = await Course.findById(courseId)
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      })
+    }
+
+    if (!course.test || course.test.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Test not found for this course",
+      })
+    }
+
+    // Return only the test questions without correct answers
+    const testQuestions = course.test.map(({ questionText, options }) => ({
+      questionText,
+      options,
+    }))
+
+    return res.status(200).json({
+      success: true,
+      data: testQuestions,
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    })
+  }
+}
+
+// Submit test answers and get score
+exports.submitTest = async (req, res) => {
+  try {
+    const { courseId } = req.params
+    const { answers } = req.body // answers should be array of { questionText, selectedOption }
+
+    const course = await Course.findById(courseId)
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      })
+    }
+
+    if (!course.test || course.test.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Test not found for this course",
+      })
+    }
+
+    if (!answers || !Array.isArray(answers)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid answers format",
+      })
+    }
+
+    // Calculate score
+    let score = 0
+    course.test.forEach((question) => {
+      const userAnswer = answers.find(
+        (ans) => ans.questionText === question.questionText
+      )
+      if (userAnswer && userAnswer.selectedOption === question.correctAnswer) {
+        score++
+      }
+    })
+
+    return res.status(200).json({
+      success: true,
+      score,
+      totalQuestions: course.test.length,
     })
   } catch (error) {
     console.error(error)
