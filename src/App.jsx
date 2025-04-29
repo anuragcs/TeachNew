@@ -34,6 +34,7 @@ import VerifyEmail from "./pages/VerifyEmail"
 import ViewCourse from "./pages/ViewCourse"
 import { getUserDetails } from "./services/operations/profileAPI"
 import { ACCOUNT_TYPE } from "./utils/constants"
+import Certificate from "./pages/Certificate"
 
 function App() {
   const dispatch = useDispatch()
@@ -129,6 +130,10 @@ function App() {
                 element={<EnrolledCourses />}
               />
               <Route path="/dashboard/cart" element={<Cart />} />
+              <Route
+                path="dashboard/certificate/:courseId"
+                element={<Certificate />}
+              />
             </>
           )}
           <Route path="dashboard/settings" element={<Settings />} />
