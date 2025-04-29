@@ -7,6 +7,7 @@ import { editCourseDetails } from "../../../../../services/operations/courseDeta
 import { resetCourseState, setStep } from "../../../../../slices/courseSlice"
 import { COURSE_STATUS } from "../../../../../utils/constants"
 import IconBtn from "../../../../Common/IconBtn"
+import TestBuilder from "./TestBuilder"
 
 export default function PublishCourse() {
   const { register, handleSubmit, setValue, getValues } = useForm()
@@ -66,6 +67,10 @@ export default function PublishCourse() {
   return (
     <div className="rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6">
       <p className="text-2xl font-semibold text-richblack-5">
+        Create Test
+      </p>
+      <TestBuilder courseId={course?._id} />
+      <p className="text-2xl font-semibold text-richblack-5 mt-10">
         Publish Settings
       </p>
       <form onSubmit={handleSubmit(onSubmit)}>
