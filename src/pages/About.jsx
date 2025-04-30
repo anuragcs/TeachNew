@@ -11,6 +11,7 @@ import LearningGrid from "../components/core/AboutPage/LearningGrid"
 import Quote from "../components/core/AboutPage/Quote"
 import StatsComponenet from "../components/core/AboutPage/Stats"
 import HighlightText from "../components/core/HomePage/HighlightText"
+import { Link } from "react-router-dom"
 
 const About = () => {
   return (
@@ -29,9 +30,21 @@ const About = () => {
           </header>
           <div className="sm:h-[70px] lg:h-[150px]"></div>
           <div className="absolute bottom-0 left-[50%] grid w-[100%] translate-x-[-50%] translate-y-[30%] grid-cols-3 gap-3 lg:gap-5 animate__animated animate__fadeIn animate__delay-1s">
-            <img src={BannerImage1} alt="" />
-            <img src={BannerImage2} alt="" />
-            <img src={BannerImage3} alt="" />
+            <img
+              src={BannerImage1}
+              alt=""
+              className="rounded-lg shadow-lg hover:scale-105 transition-transform duration-300"
+            />
+            <img
+              src={BannerImage2}
+              alt=""
+              className="rounded-lg shadow-lg hover:scale-105 transition-transform duration-300"
+            />
+            <img
+              src={BannerImage3}
+              alt=""
+              className="rounded-lg shadow-lg hover:scale-105 transition-transform duration-300"
+            />
           </div>
         </div>
       </section>
@@ -66,13 +79,19 @@ const About = () => {
                 individuals from all walks of life to unlock their full
                 potential.
               </p>
+              <Link
+                to="/signup"
+                className="mt-6 inline-block rounded bg-yellow-600 px-6 py-3 font-semibold text-richblack-900 hover:bg-yellow-700 transition"
+              >
+                Join Us Today
+              </Link>
             </div>
 
             <div className="animate__animated animate__fadeIn">
               <img
                 src={FoundingStory}
-                alt=""
-                className="shadow-[0_0_20px_0] shadow-[#FC6767]"
+                alt="Founding Story"
+                className="shadow-[0_0_20px_0] shadow-[#FC6767] rounded-lg"
               />
             </div>
           </div>

@@ -1,3 +1,4 @@
+const logger = require("../utils/logger")
 const Course = require("../models/Course")
 const Category = require("../models/Category")
 const Section = require("../models/Section")
@@ -6,6 +7,11 @@ const User = require("../models/User")
 const { uploadImageToCloudinary } = require("../utils/imageUploader")
 const CourseProgress = require("../models/CourseProgress")
 const { convertSecondsToDuration } = require("../utils/secToDuration")
+
+
+const NodeCache = require("node-cache")
+const courseCache = new NodeCache({ stdTTL: 600 }) // Cache TTL 10 minutes
+
 // Function to create a new course
 exports.createCourse = async (req, res) => {
   try {
@@ -30,8 +36,8 @@ exports.createCourse = async (req, res) => {
     const tag = JSON.parse(_tag)
     const instructions = JSON.parse(_instructions)
 
-    console.log("tag", tag)
-    console.log("instructions", instructions)
+    logger.debug("tag: %o", tag)
+    logger.debug("instructions: %o", instructions)
 
     // Check if any of the required fields are missing
     if (
@@ -50,7 +56,7 @@ exports.createCourse = async (req, res) => {
       })
     }
     if (!status || status === undefined) {
-      status = "Draft"
+      status = "Published"
     }
     // Check if the user is an instructor
     const instructorDetails = await User.findById(userId, {
@@ -77,7 +83,7 @@ exports.createCourse = async (req, res) => {
       thumbnail,
       process.env.FOLDER_NAME
     )
-    console.log(thumbnailImage)
+    logger.debug("thumbnailImage: %o", thumbnailImage)
     // Create a new course with the given details
     const newCourse = await Course.create({
       courseName,
@@ -114,7 +120,7 @@ exports.createCourse = async (req, res) => {
       },
       { new: true }
     )
-    console.log("HEREEEEEEEE", categoryDetails2)
+    logger.debug("categoryDetails2: %o", categoryDetails2)
     // Return the new course and a success message
     res.status(200).json({
       success: true,
@@ -123,7 +129,7 @@ exports.createCourse = async (req, res) => {
     })
   } catch (error) {
     // Handle any errors that occur during the creation of the course
-    console.error(error)
+    logger.error(error)
     res.status(500).json({
       success: false,
       message: "Failed to create course",
@@ -169,21 +175,24 @@ exports.editCourse = async (req, res) => {
     const updatedCourse = await Course.findOne({
       _id: courseId,
     })
-      .populate({
-        path: "instructor",
-        populate: {
-          path: "additionalDetails",
-        },
-      })
-      .populate("category")
-      .populate("ratingAndReviews")
-      .populate({
-        path: "courseContent",
-        populate: {
-          path: "subSection",
-        },
-      })
-      .exec()
+    .populate({
+      path: "instructor",
+      select: "name email",  // Select only necessary fields
+      populate: {
+        path: "additionalDetails",
+        select: "name", // Select only necessary fields
+      },
+    })
+    .populate("category", "name") // Select only category name
+    .populate("ratingAndReviews", "rating review") // Select only rating and review fields
+    .populate({
+      path: "courseContent",
+      populate: {
+        path: "subSection",
+        select: "title timeDuration", // Select only necessary fields
+      },
+    })
+    .exec()
 
     res.json({
       success: true,
@@ -284,27 +293,38 @@ exports.getAllCourses = async (req, res) => {
 exports.getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body
+
+    // Check cache first
+    const cachedCourse = courseCache.get(courseId)
+    if (cachedCourse) {
+      return res.status(200).json({
+        success: true,
+        data: cachedCourse,
+        cached: true,
+      })
+    }
+
     const courseDetails = await Course.findOne({
       _id: courseId,
     })
-      .populate({
-        path: "instructor",
-        populate: {
-          path: "additionalDetails",
-        },
-      })
-      .populate("category")
-      .populate("ratingAndReviews")
-      .populate({
-        path: "courseContent",
-        populate: {
-          path: "subSection",
-          select: "-videoUrl",
-        },
-      })
-      .exec()
-
-    console.log("Populated instructor in getCourseDetails:", courseDetails.instructor)
+    .populate({
+      path: "instructor",
+      select: "firstName lastName email",  // Select firstName and lastName instead of name
+      populate: {
+        path: "additionalDetails",
+        select: "name", // Select only necessary fields
+      },
+    })
+    .populate("category", "name") // Select only category name
+    .populate("ratingAndReviews", "rating review") // Select only rating and review fields
+    .populate({
+      path: "courseContent",
+      populate: {
+        path: "subSection",
+        select: "title timeDuration", // Select only necessary fields, exclude videoUrl
+      },
+    })
+    .exec()
 
     if (!courseDetails) {
       return res.status(400).json({
@@ -312,13 +332,6 @@ exports.getCourseDetails = async (req, res) => {
         message: `Could not find course with id: ${courseId}`,
       })
     }
-
-    // if (courseDetails.status === "Draft") {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: `Accessing a draft course is forbidden`,
-    //   });
-    // }
 
     let totalDurationInSeconds = 0
     courseDetails.courseContent.forEach((content) => {
@@ -330,12 +343,18 @@ exports.getCourseDetails = async (req, res) => {
 
     const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
 
+    const responseData = {
+      courseDetails,
+      totalDuration,
+    }
+
+    // Store in cache
+    courseCache.set(courseId, responseData)
+
     return res.status(200).json({
       success: true,
-      data: {
-        courseDetails,
-        totalDuration,
-      },
+      data: responseData,
+      cached: false,
     })
   } catch (error) {
     return res.status(500).json({
@@ -344,6 +363,7 @@ exports.getCourseDetails = async (req, res) => {
     })
   }
 }
+
 exports.getFullCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body
@@ -372,7 +392,7 @@ exports.getFullCourseDetails = async (req, res) => {
       userId: userId,
     })
 
-    console.log("courseProgressCount : ", courseProgressCount)
+    logger.debug("courseProgressCount : %o", courseProgressCount)
 
     if (!courseDetails) {
       return res.status(400).json({
@@ -433,7 +453,7 @@ exports.getInstructorCourses = async (req, res) => {
       data: instructorCourses,
     })
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     res.status(500).json({
       success: false,
       message: "Failed to retrieve instructor courses",
@@ -484,7 +504,7 @@ exports.deleteCourse = async (req, res) => {
       message: "Course deleted successfully",
     })
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     return res.status(500).json({
       success: false,
       message: "Server error",

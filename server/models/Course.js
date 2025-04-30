@@ -8,6 +8,7 @@ const coursesSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: "user",
+    index: true,
   },
   whatYouWillLearn: {
     type: String,
@@ -38,6 +39,7 @@ const coursesSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     // required: true,
     ref: "Category",
+    index: true,
   },
   studentsEnroled: [
     {
@@ -52,8 +54,9 @@ const coursesSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["Draft", "Published"],
+    index: true,
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now, index: true },
 })
 
 // Export the Courses model

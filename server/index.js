@@ -6,6 +6,7 @@ const profileRoutes = require("./routes/profile");
 const courseRoutes = require("./routes/Course");
 const paymentRoutes = require("./routes/Payments");
 const contactUsRoute = require("./routes/Contact");
+const certificateRoutes = require("./routes/certificate");
 const database = require("./config/database");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -23,7 +24,7 @@ dotenv.config();
 database.connect();
  
 // Middlewares
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(
 	cors({
@@ -47,6 +48,7 @@ app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/reach", contactUsRoute);
+app.use("/api/v1/certificate", certificateRoutes);
 
 // Testing the server
 app.get("/", (req, res) => {

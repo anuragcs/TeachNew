@@ -32,7 +32,7 @@ const ContactDetails = () => {
         let Icon = Icon1[ele.icon] || Icon2[ele.icon] || Icon3[ele.icon]
         return (
           <div
-            className="flex flex-col gap-[2px] p-3 text-sm text-richblack-200"
+            className="flex flex-col gap-[2px] p-3 text-sm text-richblack-200 rounded-lg hover:bg-richblack-700 transition duration-300 cursor-pointer shadow-sm hover:shadow-md"
             key={i}
           >
             <div className="flex flex-row items-center gap-3">

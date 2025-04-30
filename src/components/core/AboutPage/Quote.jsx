@@ -4,8 +4,7 @@ import HighlightText from '../HomePage/HighlightText'
 const Quote = () => {
   return (
     <div className=" text-xl md:text-4xl font-semibold mx-auto py-5 pb-20 text-center text-white">
-        We are passionate about revolutionizing the way we learn. Our
-        innovative platform <HighlightText text={"combines technology"} />,{" "}
+       We are driven by a passion to transform learning. Our cutting-edge platform fuses technology, expertise, and community to deliver an unmatched educational experience, empowering learners to unlock their full potential and shape the  <HighlightText text={"FUTURE"} />,{" "}
         <span className="bg-gradient-to-b from-[#FF512F] to-[#F09819] text-transparent bg-clip-text font-bold">
             {" "}
             expertise

@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
   page: {
     backgroundColor: "#f8f8f8",
     padding: 0,
+    
     fontFamily: "Helvetica",
     position: 'relative',
     width: '100%',
@@ -252,7 +253,7 @@ const Certificate = () => {
         console.log("Instructor data structure:", JSON.stringify(instructorData, null, 2))
         
         if (typeof instructorData === 'object') {
-          // Based on the actual API response structure, construct name from firstName and lastName
+          // Try to get author name if instructor name is not found
           if (instructorData.firstName && instructorData.lastName) {
             extractedInstructorName = `${instructorData.firstName} ${instructorData.lastName}`;
           } else if (instructorData.firstName) {
@@ -263,10 +264,10 @@ const Certificate = () => {
             extractedInstructorName = instructorData.name;
           } else if (instructorData.additionalDetails && instructorData.additionalDetails.name) {
             extractedInstructorName = instructorData.additionalDetails.name;
-          } else if (typeof instructorData.author === 'string') {
-            extractedInstructorName = instructorData.author;
-          } else if (instructorData.author && instructorData.author.name) {
-            extractedInstructorName = instructorData.author.name;
+          } else if (typeof courseData.author === 'string') {
+            extractedInstructorName = courseData.author;
+          } else if (courseData.author && courseData.author.name) {
+            extractedInstructorName = courseData.author.name;
           } else {
             extractedInstructorName = "Instructor";
           }
@@ -319,6 +320,46 @@ const Certificate = () => {
         }
         fileName={`${courseName.replace(/\s+/g, '_')}_Certificate_${userName.replace(/\s+/g, '_')}.pdf`}
         className="rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 px-8 py-3 font-bold text-white hover:from-yellow-600 hover:to-yellow-700 shadow-lg transition-all duration-300 transform hover:scale-105"
+        onClick={async (event) => {
+          try {
+            event.preventDefault();
+            const instance = (
+              <CertificateDocument
+                userName={userName}
+                courseName={courseName}
+                completionDate={completionDate}
+                instructorName={instructorName}
+              />
+            );
+            const { pdf } = await import("@react-pdf/renderer");
+            const blob = await pdf(instance).toBlob();
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = async () => {
+              const base64data = reader.result.split(",")[1];
+              const response = await fetch(`${process.env.REACT_APP_BASE_URL}/certificate/sendCertificateEmail`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({
+                  email: user?.email,
+                  certificateBase64: base64data,
+                  fileName: `${courseName.replace(/\s+/g, "_")}_Certificate_${userName.replace(/\s+/g, "_")}.pdf`,
+                }),
+              });
+              if (!response.ok) {
+                alert("Failed to send certificate email.");
+              } else {
+                alert("Certificate email sent successfully!");
+              }
+            };
+          } catch (error) {
+            console.error("Error sending certificate email:", error);
+            alert("An error occurred while sending the certificate email.");
+          }
+        }}
       >
         {({ loading }) => (loading ? "Generating certificate..." : "Download Your Certificate")}
       </PDFDownloadLink>
