@@ -1,0 +1,41 @@
+Nginx Reverse Proxy Setup Instructions
+--------------------------------------
+
+1. Place the nginx.conf file in your Nginx configuration directory (e.g., /etc/nginx/nginx.conf or /etc/nginx/sites-available/your-site.conf).
+
+2. Update the following placeholders in nginx.conf:
+   - Replace "yourdomain.com" with your actual domain name.
+   - Replace "/path/to/your/react/build" with the absolute path to your React app's build directory (usually created by running `npm run build` in your React project).
+   - Replace SSL certificate paths with the paths to your SSL certificate and private key files.
+
+3. SSL Certificates:
+   - You can obtain free SSL certificates from Let's Encrypt using Certbot.
+   - Alternatively, use your own SSL certificates.
+   - Place the certificate and key files in a secure directory and update the paths in nginx.conf accordingly.
+
+4. Backend Servers:
+   - The configuration currently points to a single backend server at localhost:4000.
+   - To enable load balancing, run multiple instances of your backend server on different ports (e.g., 4000, 4001) and add them under the "upstream backend" block.
+
+5. Static Assets Caching:
+   - Static files like JS, CSS, images are cached for 30 days to improve performance.
+   - Adjust caching duration in nginx.conf if needed.
+
+6. Enable and Restart Nginx:
+   - Test the Nginx configuration: `sudo nginx -t`
+   - Reload or restart Nginx: `sudo systemctl reload nginx` or `sudo systemctl restart nginx`
+
+7. Build and Deploy React App:
+   - Run `npm run build` in your React project to generate static files.
+   - Copy the build output to the directory specified in nginx.conf.
+
+8. Run Backend Server(s):
+   - Start your backend server(s) on the ports specified in nginx.conf.
+
+This setup will:
+- Forward API requests to your backend server(s).
+- Serve your React app's static files efficiently.
+- Handle HTTPS connections with SSL termination.
+- Provide load balancing if multiple backend servers are configured.
+
+If you need help with any step, feel free to ask.
